@@ -11,6 +11,29 @@ A lot of the "improvements" here looked good on a single 80/20 split and
 then shrank or reversed once checked with a proper walk-forward backtest.
 Those results are included below rather than left out.
 
+## Output screenshots
+
+Captured from a full run of `notebook.ipynb` on September 27, 2026, with the
+data loaded from a local copy of the competition files. LSTM training isn't
+bit-for-bit deterministic on CPU, so the LSTM numbers move a little from run
+to run; the tables below are from earlier runs.
+
+**Exploratory view of the top-volume series**
+
+![Store 44 GROCERY I: daily sales, day-of-week, promotion and holiday effects](screenshots/eda_store44_grocery.png)
+
+**Forecast error by model**
+
+![WAPE by model, naive baselines through pooled XGBoost](screenshots/wape_by_model.png)
+
+**Single-series results (store 44, GROCERY I)**
+
+![Notebook output: baselines, tuned LSTM, covariates, XGBoost](screenshots/single_series_results.png)
+
+**Pooling, walk-forward backtest, and ensembling**
+
+![Notebook output: pooled vs independent XGBoost, backtest folds, ensemble comparison](screenshots/pooled_backtest_ensemble_results.png)
+
 ## Results
 
 **Single series (store 44, product family GROCERY I)**
