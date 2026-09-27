@@ -34,6 +34,10 @@ to run; the tables below are from earlier runs.
 
 ![Notebook output: pooled vs independent XGBoost, backtest folds, ensemble comparison](screenshots/pooled_backtest_ensemble_results.png)
 
+**Is the ensemble ranking stable? (Section 17b)**
+
+![Ensemble comparison repeated across 10 LSTM seeds](screenshots/ensemble_seed_check.png)
+
 ## Results
 
 **Single series (store 44, product family GROCERY I)**
@@ -67,6 +71,16 @@ to run; the tables below are from earlier runs.
 | Grid-searched blend weight (XGB weight = 0.65) | 10.87% (14.50% on the fit half) |
 | Linear stacker | 10.74% |
 
+The table above is a single run. Re-training the LSTM with 10 different
+seeds (same data, same XGBoost model, notebook Section 17b) and re-scoring
+all three methods each time gives a different picture:
+
+| Method | Mean 2nd-half WAPE (10 seeds) | Std | Times best |
+|---|---|---|---|
+| Naive 50/50 average | 11.50% | 0.20 | 1 of 10 |
+| Grid-searched blend weight | 11.38% | 0.08 | 3 of 10 |
+| Linear stacker | 11.38% | 0.27 | 6 of 10 |
+
 ## Key findings
 
 **Pooling is the single biggest lever here.** One XGBoost model trained
@@ -94,13 +108,18 @@ lucky split.
 12.43%). Smaller than the pooling effect, and not free: it cost 30
 additional model fits.
 
-**The naive 50/50 ensemble beat both "smarter" alternatives once scored
-honestly.** A grid-searched blend weight and a linear stacker both
-looked better on the data they were fit on, but a plain 50/50 average
-won on the held-out second half of the test period. The fancier
-ensembling methods were fitting noise in the first half that didn't
-generalize, and the only way to catch that was scoring them on data
-they hadn't seen.
+**No ensembling method reliably wins; the ranking depends on the LSTM
+run.** In the original run a plain 50/50 average edged out both a
+grid-searched blend weight and a linear stacker on the held-out second
+half of the test period (10.70% vs 10.87% and 10.74%). Re-training the
+LSTM with 10 seeds and re-scoring each time reversed that: the stacker
+was best 6 times, the grid-searched weight 3 times, and the 50/50
+average only once, with the two fitted methods about 0.1 points better
+on average. All three sit within a few tenths of a point of each other,
+which is smaller than the seed-to-seed swing, so the honest conclusion
+is that the choice of blend barely matters here, and a single run isn't
+enough to pick one. The grid-searched weight is the most stable of the
+three (std 0.08).
 
 **Adding covariates isn't free.** `transactions_lag1` and `promo_roll7`
 together made the single-series LSTM worse, not better, before the
@@ -119,9 +138,9 @@ competing with a broken feature that's still in the model.
 - Try quantile/pinball loss for the pooled XGBoost model, since retail
   demand is right-skewed and WAPE alone doesn't say anything about
   calibration.
-- Give the linear stacker L2 regularization or more fit data before
-  writing it off. It lost by a narrow margin (10.74% vs 10.70%) and
-  might do better with a larger fit window.
+- Give the linear stacker L2 regularization or more fit data. It won
+  most often across seeds but also had the widest spread, which is what
+  an unregularized fit on a small window would be expected to do.
 
 ## Repo structure
 
